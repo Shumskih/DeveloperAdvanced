@@ -1,3 +1,9 @@
+Developer
+
+
+CRUD apllication use pattern DAO
+
+
 ver. 1.0
 
        - create, Update, Find by ID and show all developers, skills, projects, companies, customers.

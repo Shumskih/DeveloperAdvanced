@@ -1,8 +1,7 @@
 package developer.view;
 
+import developer.controller.DeveloperController;
 import developer.controller.ProjectController;
-import developer.dao.JavaIODeveloperDAOImpl;
-import developer.dao.JavaIOProjectDAOImpl;
 import developer.model.Developer;
 import developer.model.Project;
 import developer.model.Skill;
@@ -17,39 +16,50 @@ public class ProjectView {
     private static final String filePathSkills = "skills.txt";
 
     ProjectController projectController = new ProjectController();
-    JavaIOProjectDAOImpl javaIOProjectDAOImpl = new JavaIOProjectDAOImpl();
-    JavaIODeveloperDAOImpl javaIODeveloperDAOImpl = new JavaIODeveloperDAOImpl();
+    DeveloperController developerController = new DeveloperController();
 
     BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 
     Project project;
+    Integer projectIdUserInput;
+    String projectNameUserInput;
+    String projectVersionUserInput;
+
+    Integer projectIDParsed;
+    String projectNameParsed;
+    String projectVersionParsed;
+
+    Skill skill;
+    Integer skillID;
+    String skillName;
+
     Developer developer;
-    Integer projectId;
-    String projectName;
-    String projectVersion;
+    Integer developerID;
+
+    String addDeveloper;
+
     Set<Project> projects = new LinkedHashSet<>();
     Set<Skill> skills = new LinkedHashSet<>();
     Set<Developer> developers = new LinkedHashSet<>();
-    Integer developerID;
+
 
     public void createProject() {
-        String addDeveloper;
         try {
             do {
                 System.out.println("Enter project's ID: ");
-                projectId = Integer.parseInt(br.readLine().trim());
+                projectIdUserInput = Integer.parseInt(br.readLine().trim());
                 break;
             } while (true);
 
             do {
                 System.out.println("Enter project's name: ");
-                projectName = br.readLine().trim();
+                projectNameUserInput = br.readLine().trim();
                 break;
             } while (true);
 
             do {
                 System.out.println("Enter project's version: ");
-                projectVersion = br.readLine().trim();
+                projectVersionUserInput = br.readLine().trim();
 
                 System.out.println("Add developer to the project? \"yes\" or \"no\"");
                 addDeveloper = br.readLine().trim();
@@ -57,7 +67,7 @@ public class ProjectView {
 
                     System.out.println("There is a list of developers: ");
 
-                    javaIODeveloperDAOImpl.showAllDevelopers();
+                    developerController.showAllDevelopers();
 
                     System.out.println();
                     System.out.println("Please, enter ID of developer you want to add: ");
@@ -66,13 +76,6 @@ public class ProjectView {
                     // If user enter ID of developer, ID of project add to the developer in file developer.txt automatically
                     String[] skillData = null;
                     String[] projectData = null;
-
-                    Integer skillID;
-                    String skillName;
-
-                    Integer projID;
-                    String projName;
-                    String projVersion;
 
                     try (BufferedReader reader = new BufferedReader(new FileReader(filePathDevelopers))) {
                         String line;
@@ -96,17 +99,17 @@ public class ProjectView {
                     try (BufferedReader reader = new BufferedReader(new FileReader(filePathSkills)))
                     {
                         String line;
-                        String[] skillData1;
+                        String[] skillsData;
 
                         while ((line = reader.readLine()) != null) {
-                            skillData1 = line.split(",");
+                            skillsData = line.split(",");
 
                             for (String s:skillData) {
-                                if (skillData1[0].equals(s)) {
-                                    skillID = Integer.parseInt(skillData1[0]);
-                                    skillName = skillData1[1];
+                                if (skillsData[0].equals(s)) {
+                                    skillID = Integer.parseInt(skillsData[0]);
+                                    skillName = skillsData[1];
 
-                                    Skill skill = new Skill(skillID, skillName);
+                                    skill = new Skill(skillID, skillName);
                                     skills.add(skill);
                                 }
                             }
@@ -118,29 +121,29 @@ public class ProjectView {
                     try (BufferedReader reader = new BufferedReader(new FileReader(filePathProjects)))
                     {
                         String line;
-                        String[] projectData1;
+                        String[] projData;
 
                         while ((line = reader.readLine()) != null) {
-                            projectData1 = line.split(",");
+                            projData = line.split(",");
 
                             try {
                                 for (String p : projectData) {
-                                    if (projectData1[0].equals(p)) {
-                                        projID = Integer.parseInt(projectData1[0]);
-                                        projName = projectData1[1];
-                                        projVersion = projectData1[2];
+                                    if (projData[0].equals(p)) {
+                                        projectIDParsed = Integer.parseInt(projData[0]);
+                                        projectNameParsed = projData[1];
+                                        projectVersionParsed = projData[2];
 
-                                        Project project = new Project(projID, projName, projVersion);
+                                        Project project = new Project(projectIDParsed, projectNameParsed, projectVersionParsed);
                                         projects.add(project);
                                     }
                                 }
                             } catch (NullPointerException e) {
-                                if (projectData1[0].equals(Integer.toString(projectId))) {
-                                    projID = Integer.parseInt(projectData1[0]);
-                                    projName = projectData1[1];
-                                    projVersion = projectData1[2];
+                                if (projData[0].equals(Integer.toString(projectIdUserInput))) {
+                                    projectIDParsed = Integer.parseInt(projData[0]);
+                                    projectNameParsed = projData[1];
+                                    projectVersionParsed = projData[2];
 
-                                    Project project = new Project(projID, projName, projVersion);
+                                    Project project = new Project(projectIDParsed, projectNameParsed, projectVersionParsed);
                                     projects.add(project);
                                 }
                             }
@@ -186,15 +189,14 @@ public class ProjectView {
                     }
                     developer = new Developer(id, developerName, developerSurname, developerSpecialization, developerExperience, developerSalary, skills, projects);
                     developers.add(developer);
-                    project = new Project(projectId, projectName, projectVersion, developers);
+                    project = new Project(projectIdUserInput, projectNameUserInput, projectVersionUserInput, developers);
                     projects.add(project);
-                    javaIOProjectDAOImpl.save(project);
-                    javaIODeveloperDAOImpl.update(developer);
+                    projectController.save(project);
+                    developerController.update(developer);
                     break;
                 } else {
-                    Set<Developer> developers = new LinkedHashSet<>();
-                    project = new Project(projectId, projectName, projectVersion, developers);
-                    javaIOProjectDAOImpl.save(project);
+                    project = new Project(projectIdUserInput, projectNameUserInput, projectVersionUserInput, developers);
+                    projectController.save(project);
                     projects.add(project);
                     break;
                 }
@@ -207,30 +209,29 @@ public class ProjectView {
     }
 
     public void updateProject() {
-        String addDeveloper;
         try {
             do {
                 System.out.println("Enter project's ID: ");
-                projectId = Integer.parseInt(br.readLine().trim());
+                projectIdUserInput = Integer.parseInt(br.readLine().trim());
                 break;
             } while (true);
 
             do {
                 System.out.println("Enter project's name: ");
-                projectName = br.readLine().trim();
+                projectNameUserInput = br.readLine().trim();
                 break;
             } while (true);
 
             do {
                 System.out.println("Enter project's version: ");
-                projectVersion = br.readLine().trim();
+                projectVersionUserInput = br.readLine().trim();
                 break;
             } while (true);
 
             do {
                 System.out.println("There is a list of developers: ");
 
-                javaIODeveloperDAOImpl.showAllDevelopers();
+                developerController.showAllDevelopers();
 
                 System.out.println();
                 System.out.println("Please, enter ID of developer you want to add: ");
@@ -260,7 +261,7 @@ public class ProjectView {
                             developerExperience = Integer.parseInt(developerData[4]);
                             developerSalary = Integer.parseInt(developerData[5]);
 
-                            Developer developer = new Developer(id, developerName, developerSurname, developerSpecialization, developerExperience, developerSalary, skills, projects);
+                            developer = new Developer(id, developerName, developerSurname, developerSpecialization, developerExperience, developerSalary, skills, projects);
                             developers.add(developer);
                             developer = null;
                         }
@@ -274,8 +275,8 @@ public class ProjectView {
                 System.out.println("Do you want to add another one developer? yes or no: ");
                 addDeveloper = br.readLine().trim();
                 if (addDeveloper.equals("no")) {
-                    project = new Project(projectId, projectName, projectVersion, developers);
-                    javaIOProjectDAOImpl.update(project);
+                    project = new Project(projectIdUserInput, projectNameUserInput, projectVersionUserInput, developers);
+                    projectController.update(project);
                     break;
                 }
             } while(true);
@@ -287,8 +288,8 @@ public class ProjectView {
     public void getById() {
         try {
             System.out.println("Enter ID of project you want to find: ");
-            projectId = Integer.parseInt(br.readLine().trim());
-            projectController.getById(projectId);
+            projectIdUserInput = Integer.parseInt(br.readLine().trim());
+            projectController.getById(projectIdUserInput);
         } catch (IOException e) {
             System.out.println("Ooooops... Some error happened: " + e);
         }
